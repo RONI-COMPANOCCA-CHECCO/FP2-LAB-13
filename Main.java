@@ -9,94 +9,94 @@ public class Main{
 	public static void main(String[] args) {
 
 		//DECLARACION DE VARIABLES Y ARREGLOS NECESARIOS
-		ArrayList<Soldado> ejercito1 = new ArrayList();
-		ArrayList<Soldado> ejercito2 = new ArrayList();
-		ArrayList<ArrayList<Soldado>> tablero = new ArrayList();
-		int batallon1, batallon2;
-		int vidatotal1=0, vidatotal2=0;
-		double promedioVida1=0, promedioVida2=0;
+		// Crea el tablero y los ejércitos
+        ArrayList<ArrayList<Soldado>> tablero = new ArrayList<>();
+        ArrayList<Soldado> ejercito1 = new ArrayList<>();
+        ArrayList<Soldado> ejercito2 = new ArrayList<>();
 
-		// BUCLE PARA DESIGNAR LA CANTIDAD DE FILAS Y COLUMNAS DEL TABLERO
-		for(int i=0; i<10; i++) {
-			tablero.add(new ArrayList<Soldado>());
-			for(int j=0; j<10; j++) {
-				tablero.get(i).add(new Soldado());
-			}
-		}
+        inicializarTablero(tablero);
+        inicializarEjercitos(ejercito1, ejercito2);
 
-		// CREACION DEL NUMERO DE POSICIONES DE CADA EJERCITO
-		batallon1 = aleatorio(1,10);
-		batallon2 = aleatorio(1,10);
+        // Muestra el tablero inicial
+        imprimirTablero(tablero);
 
-		// INICIALIZAR ARREGLOS
-		inicializarArreglo(ejercito1, batallon1);
-		inicializarArreglo(ejercito2, batallon2);
+        // Ciclo del juego
+        boolean juegoEnCurso = true;
+        int jugadorActual = 1;
 
-		// GENERAR EJERCITOS VALIDOS
-		generarEjercitos(ejercito1, ejercito2);
+        while (juegoEnCurso) {
+            // Turno del jugador
+            ArrayList<Soldado> ejercitoActual = (jugadorActual == 1) ? ejercito1 : ejercito2;
+            ArrayList<Soldado> ejercitoOponente = (jugadorActual == 1) ? ejercito2 : ejercito1;
 
-		// AÑADIR LOS EJERCITOS AL TABLERO
-		añadirTablero(ejercito1, tablero);
-		añadirTablero(ejercito2, tablero);
+            System.out.println("\nJugador " + jugadorActual + ", es tu turno:");
 
-		//IMPRIMIR EL TABLERO
-		imprimirTablero(tablero);
+            // Solicita la coordenada del soldado a mover y la dirección
+            int fila, columna, nuevaFila, nuevaColumna;
+            Soldado soldado;
 
-		//IMPRIMIR LOS SOLDADOS DE MAYOR VIDA DE CADA EJERCITO
-		System.out.println("Soldado de mayor vida del ejercito 1");
-		SoldadoConMayorVida(ejercito1);
-		System.out.println("soldado de mayor vida del ejercito 2");
-		SoldadoConMayorVida(ejercito2);
+            do {
+                Scanner scanner = new Scanner(System.in);
+                System.out.print("Ingrese la fila del soldado a mover (1-10): ");
+                fila = scanner.nextInt() - 1;
+                System.out.print("Ingrese la columna del soldado a mover (A-J): ");
+                scanner.nextLine(); // Consumir el salto de línea anterior
+                String columnaStr = scanner.nextLine();
+                nuevaFila = fila;
+                nuevaColumna = columnaStr.charAt(0) - 'A';
+                soldado = tablero.get(fila).get(nuevaColumna);
 
-		//IMPRIMIR LA VIDA TOTAL Y EL PROMEDIO DEL EJERCITO 1
-		System.out.println("\nEJERCITO 1: ");
-		for (int i=0; i<ejercito1.size(); i++) {
-			vidatotal1+=ejercito1.get(i).getPuntos();
-			promedioVida1 = vidatotal1/(ejercito1.size()*1.0);
-		}
-		System.out.println("Vida total: "+vidatotal1);
-		System.out.println("Promedio de vida: "+promedioVida1);
-		
-		//IMPRIMIR LA VIDA TOTAL Y EL PROMEDIO DEL EJERCITO 2
-		System.out.println("\nEJERCITO 2: ");
-		for (int i=0; i<ejercito2.size(); i++) {
-			vidatotal2+=ejercito2.get(i).getPuntos();
-			promedioVida2 = vidatotal2/(ejercito2.size()*1.0);
-		}
-		System.out.println("Vida total: "+vidatotal2);
-		System.out.println("Promedio de vida: "+promedioVida2);
+                if (fila < 0 || fila >= 10 || nuevaColumna < 0 || nuevaColumna >= 10) {
+                    System.out.println("Coordenadas fuera del rango. Intente de nuevo.");
+                } else if (soldado == null || soldado.getVive() == false) {
+                    System.out.println("No hay un soldado en esa posición o está muerto. Intente de nuevo.");
+                } else if (!esMovimientoValido(tablero, fila, nuevaColumna, nuevaFila, nuevaColumna)) {
+                    System.out.println("Movimiento no válido. Intente de nuevo.");
+                }
+            } while (fila < 0 || fila >= 10 || nuevaColumna < 0 || nuevaColumna >= 10 || soldado == null || soldado.getVive() == false || !esMovimientoValido(tablero, fila, nuevaColumna, nuevaFila, nuevaColumna));
 
-		//IMPRIMIR LOS SOLDADOS CREADOS EN EL ORDEN POR DEFECTO
-		System.out.println("\nLista ejercito 1:");
-		for(int i=0; i<ejercito1.size(); i++) {
-			imprimir(ejercito1.get(i));
-		}
-		System.out.println("\nLista ejercito 2:");
-		for(int i=0; i<ejercito2.size(); i++) {
-			imprimir(ejercito2.get(i));
-		}
+            // Realizar el movimiento
+            Soldado soldadoOponente = tablero.get(nuevaFila).get(nuevaColumna);
+            if (soldadoOponente != null && soldadoOponente.getVive()) {
+                // Batalla
+                System.out.println("¡Batalla!");
+                double probabilidadGanarJugador = calcularProbabilidad(soldado.getPuntos(), soldadoOponente.getPuntos());
 
-		// IMPRIMIR LOS DATOS DE LOS SOLDADOS ORDENADOS DE MAYOR A MENOR DEPENDIENDO DE SU NIVEL DE VIDA USANDO DOS TIPOS DE ALGORITMO
-		ordenarPorVidaMetodoA(ejercito1);
-		ordenarPorVidaMetodoB(ejercito2);
-		System.out.println("\nEjercito 1 Ordenados por nivel de vida");
-		for(int i=0; i<ejercito1.size(); i++) {
-			imprimir(ejercito1.get(i));
-		}
-		System.out.println("\nEjercito 2 Ordenados por nivel de vida");
-		for(int i=0; i<ejercito2.size(); i++) {
-			imprimir(ejercito2.get(i));
-		}
-		
-		// MOSTRAR EJERCITO GANADOR LA METRICA USADA ARA DESIGNAR AL GANADOR ES POR EL NIVEL DEL PROMEDIO DE VIDA DE CADA EJERCITO
-		if(promedioVida1>promedioVida2) {
-			System.out.println("\nGANADOR ***EJERCITO 1***");
-		}else if (promedioVida1<promedioVida2) {
-			System.out.println("\nGANADOR ***EJERCITO 2***");
-			}
-		else {
-			System.out.print("\n***ES UN EMPATE***");
-		}
+                Random random = new Random();
+                double resultado = random.nextDouble();
+
+                if (resultado <= probabilidadGanarJugador) {
+                    System.out.println("¡Gana el Jugador " + jugadorActual + "!");
+                    aumentarVida(soldado);
+                    eliminarSoldado(tablero, ejercitoOponente, nuevaFila, nuevaColumna);
+                } else {
+                    System.out.println("¡Gana el Jugador " + (jugadorActual == 1 ? 2 : 1) + "!");
+                    aumentarVida(soldadoOponente);
+                    eliminarSoldado(tablero, ejercitoActual, fila, nuevaColumna);
+                }
+            } else {
+                // Movimiento normal
+                tablero.get(nuevaFila).set(nuevaColumna, soldado);
+                tablero.get(fila).set(nuevaColumna, null);
+                soldado.setColumna(nuevaColumna);
+                soldado.setFila(nuevaFila);
+            }
+
+            // Mostrar el tablero actualizado
+            imprimirTablero(tablero);
+
+            // Verificar si hay un ganador
+            if (ejercito1.isEmpty()) {
+                System.out.println("¡Jugador 2 gana!");
+                juegoEnCurso = false;
+            } else if (ejercito2.isEmpty()) {
+                System.out.println("¡Jugador 1 gana!");
+                juegoEnCurso = false;
+            }
+
+            // Cambiar al siguiente jugador
+            jugadorActual = (jugadorActual == 1) ? 2 : 1;
+        }
 	}
 
 	// METODO PARA CREAR NUMEROS ALEATORIOS EN UN RANGO
